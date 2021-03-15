@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <link href="../ico/xy.ico" rel="shortcut icon" type="image/x-icon"/>
+        <title>系统登录</title>
+
+        <!-- 1. 导入CSS的全局样式 -->
+        <link href="/salary/css/bootstrap.min.css" rel="stylesheet">
+        <!-- 2. jQuery导入，建议使用1.9以上的版本 -->
+        <script src="/salary/js/jquery-3.3.1.js"></script>
+        <!-- 3. 导入bootstrap的js文件 -->
+        <script src="/salary/js/bootstrap.min.js"></script>
+        <script>
+            window.onresize=function (){
+                if(document.body.scrollWidth<600){
+                    $("#textContainer").css("width","100%");
+                }else {
+                    $("#textContainer").css("width","400px");
+                }
+            }
+
+            $(function () {
+                //加载完成，改变表单宽度
+                if (document.body.scrollWidth < 600) {
+                    $("#textContainer").css("width", "100%");
+                } else {
+                    $("#textContainer").css("width", "400px");
+                }
+            })
+
+
+        </script>
+    </head>
+    <body>
+
+
+        <div class="container" style="width: 400px;">
+            <h2 style="text-align: center;margin-top:38%;line-height: 45px">对不起，<br>您访问的页面出错了！</h2>
+
+            <!--注册跳转链接-->
+            <a href="/salary/user/login.html" class="btn btn btn-primary" type="button"
+               style="margin-top:10%;display:block;text-align: center;">
+                点击返回登陆页面
+            </a>
+
+        </div>
+        <!--与页底距离-->
+        <div style="margin-bottom: 35px"></div>
+    </body>
+</html>

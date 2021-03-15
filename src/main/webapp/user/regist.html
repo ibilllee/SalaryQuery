@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <link href="../ico/xy.ico" rel="shortcut icon" type="image/x-icon"/>
+        <title>用户注册</title>
+
+        <!-- 1. 导入CSS的全局样式 -->
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <!-- 2. jQuery导入，建议使用1.9以上的版本 -->
+        <script src="../js/jquery-3.3.1.js"></script>
+        <!-- 3. 导入bootstrap的js文件 -->
+        <script src="../js/bootstrap.min.js"></script>
+        <script>
+            //改变表单宽度
+            window.onresize = function () {
+                if (document.body.scrollWidth < 600) {
+                    $("#submitForm").css("width", "100%");
+                } else {
+                    $("#submitForm").css("width", "400px");
+                }
+            }
+
+            function displayErrMsg(data) {
+                var err_msg_block = $("#err_msg_block");
+                err_msg_block.css("display", "block");
+                err_msg_block.html(data);
+            }
+
+            function clearErrMsg() {
+                var err_msg_block = $("#err_msg_block");
+                err_msg_block.css("display", "none");
+                err_msg_block.html("状态提示");
+            }
+
+            function checkEmpName() {
+                var emp_name_obj = $("#emp_name");
+                if (emp_name_obj.val() === "") {
+                    emp_name_obj.css("border-color", "red");
+                    displayErrMsg("姓名不能为空");
+                    return false;
+                } else {
+                    emp_name_obj.css("border-color", "#cccccc");
+                    clearErrMsg();
+                    return true;
+                }
+            }
+
+            function checkEmpId() {
+                var emp_id_obj = $("#emp_id");
+
+                var reg_emp_id = /^[0-9]{17}[0-9X]{1}$/;
+                var flag = reg_emp_id.test(emp_id_obj.val());
+                if (!flag) {
+                    emp_id_obj.css("border-color", "red");
+                    displayErrMsg("身份证输入有误（检查位数，X是否为大写）");
+                    return -2;
+                } else {
+                    //检查身份证是否被注册
+                    $.ajaxSettings.async = false;//同步提交
+                    var flag_if_registed = 0;
+                    $.post("../userServlet/checkIfIdExist", {emp_id: emp_id_obj.val()}, function (data) {
+                        if (!data.flag) {//用户已存在
+                            emp_id_obj.css("border-color", "red");
+                            displayErrMsg("身份证已被注册");
+                            flag_if_registed = -1;
+                        } else {
+                            emp_id_obj.css("border-color", "#cccccc");
+                            clearErrMsg();
+                            flag_if_registed = 0;
+                        }
+                    });
+                    $.ajaxSettings.async = true;//改回异步
+                    return flag_if_registed;
+                }
+            }
+
+            function checkEmpPassword() {
+                var emp_password_obj = $("#emp_password");
+                var reg_emp_password = /^\w{6,20}$/;
+                var flag = reg_emp_password.test(emp_password_obj.val());
+                if (!flag) {
+                    emp_password_obj.css("border-color", "red");
+                    displayErrMsg("密码不符合规范：6到20位");
+                    return false;
+                } else {
+                    emp_password_obj.css("border-color", "#cccccc");
+                    clearErrMsg();
+                    return true;
+                }
+            }
+
+            function checkEmpPasswordConf() {
+                var emp_password_obj = $("#emp_password");
+                var emp_password_conf_obj = $("#emp_password_conf");
+                if (emp_password_obj.val() !== emp_password_conf_obj.val()) {
+                    emp_password_conf_obj.css("border-color", "red");
+                    displayErrMsg("两次密码输入不一致");
+                    return false;
+                } else {
+                    emp_password_conf_obj.css("border-color", "#cccccc");
+                    clearErrMsg();
+                    return true;
+                }
+            }
+
+            $(function () {
+                //加载完成，改变表单宽度
+                if (document.body.scrollWidth < 600) {
+                    $("#submitForm").css("width", "100%");
+                } else {
+                    $("#submitForm").css("width", "400px");
+                }
+
+
+                //验证码回车提交
+                //解决Firefox下回车穿透
+                var name = "";
+                $("#CAPTCHA").keyup(function (event) {
+                    if (event.keyCode == 13) {
+                        if ($(this).val() == name) {
+                            $("#login_btn").click();
+                        }
+                    }
+                })
+                $("#CAPTCHA").keydown(function (event) {
+                    if (event.keyCode == 13) {
+                        name = $(this).val();
+                    }
+
+                });
+                // $("#CAPTCHA").get(0).addEventListener("keyup",function (e){
+                // 	e.preventDefault()
+                // 	if(e.keyCode===13){
+                // 		$("#login_btn").click();
+                // 	}
+                // })
+                $("#emp_name").blur(checkEmpName);
+                $("#emp_id").blur(checkEmpId);
+                $("#emp_password").blur(checkEmpPassword);
+                $("#emp_password_conf").blur(checkEmpPasswordConf);
+                $("#regist_btn").click(function () {
+                    var err_msg = "";
+                    if (!checkEmpName()) err_msg += "姓名不能为空<br>";
+                    var checkEmpIdResult = checkEmpId();
+                    if (checkEmpIdResult === -1) err_msg += "身份证号已被注册<br>";
+                    if (checkEmpIdResult === -2) err_msg += "身份证号输入有误（检查位数，X是否为大写）<br>";
+                    if (!checkEmpPassword()) err_msg += "密码不符合规范：6到20位<br>";
+                    if (!checkEmpPasswordConf()) err_msg += "两次密码输入不一致<br>";
+                    if (err_msg !== "") {
+                        err_msg += "注册失败！"
+                        displayErrMsg(err_msg);
+                    } else {
+                        $.post("../userServlet/regist", $("#regist_form").serialize(), function (data) {
+                            document.getElementById("CAPTCHA_img").src = "../CAPTCHA?" + new Date().getTime();
+                            displayErrMsg(data.errorMsg);
+                        })
+                    }
+                })
+            })
+        </script>
+    </head>
+    <body>
+        <div class="container" id="submitForm" style="width:400px">
+            <h1 style="text-align: center;margin-top:50px;">工资查询系统</h1>
+            <h3 style="text-align: center;">用户注册</h3>
+
+            <form id="regist_form" method="post" accept-charset="utf-8">
+                <div class="form-group">
+                    <label for="emp_name">姓名：</label>
+                    <input type="text" name="emp_name" class="form-control" id="emp_name" placeholder="请输入姓名"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="emp_id">用户名 (身份证号)：</label>
+                    <input type="text" name="emp_id" class="form-control" id="emp_id" placeholder="请输入身份证号，X字母使用大写"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="emp_password">密码 (长度为6至20位)：</label>
+                    <input type="password" name="emp_password" class="form-control" id="emp_password"
+                           placeholder="请设置密码，长度为6至20位"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="emp_password_conf">确认密码：</label>
+                    <input type="password" name="emp_password_conf" class="form-control" id="emp_password_conf"
+                           placeholder="请再次输入密码"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="CAPTCHA">验证码 (不区分大小写)：</label>
+                    <div class="container-fluid" style="padding: 0px">
+                        <div class="row">
+                            <div class="col-sm-5" style="margin-top: 10px">
+                                <input type="text" name="CAPTCHA" class="form-control" id="CAPTCHA"
+                                       placeholder="不区分大小写"/>
+                            </div>
+                            <div class="col-sm-1 col-xs-3" style="margin-top: 10px"></div>
+                            <div class="col-sm-6 col-xs-6" style="margin-top: 10px">
+                                <span><img alt="验证码加载失败" src="../CAPTCHA" onclick="changeCAPTCHA(this)"
+                                           id="CAPTCHA_img"/> <span style="color: gray">点击图像可刷新</span></span>
+                            </div>
+                            <script type="text/javascript">
+                                function changeCAPTCHA(ele) {
+                                    ele.src = "../CAPTCHA?" + new Date().getTime();
+                                }
+                            </script>
+                        </div>
+                    </div>
+                </div>
+                <hr/>
+
+                <div class="alert alert-info alert-dismissible" role="alert" id="err_msg_block" style="display: none;">
+                    <button type="button" class="close" data-dismiss="alert" id="err_msg_block_x">
+                        <span id="err_msg_block_x_y">&times;</span>
+                    </button>
+                    <strong>状态提示</strong>
+                </div>
+
+                <div class="form-group" style="text-align: center;">
+                    <input class="btn btn btn-primary" type="button" value="注册" id="regist_btn">
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <a href="login.html"> <input class="btn btn btn-primary" type="button"
+                                                 onclick="window.location.href('login.html')" value="返回" id="back_btn"></a>
+                </div>
+            </form>
+
+
+        </div>
+
+        <div style="margin-bottom: 35px"></div>
+    </body>
+</html>

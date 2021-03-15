@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <link href="../ico/xy.ico" rel="shortcut icon" type="image/x-icon"/>
+        <title>系统登录</title>
+
+        <!-- 1. 导入CSS的全局样式 -->
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <!-- 2. jQuery导入，建议使用1.9以上的版本 -->
+        <script src="../js/jquery-3.3.1.js"></script>
+        <!-- 3. 导入bootstrap的js文件 -->
+        <script src="../js/bootstrap.min.js"></script>
+        <script type="text/javascript">
+            //改变表单宽度
+            window.onresize=function (){
+                if(document.body.scrollWidth<600){
+                    $("#submitForm").css("width","100%");
+                }else {
+                    $("#submitForm").css("width","400px");
+                }
+            }
+
+            $(function () {
+                //加载完成，改变表单宽度
+                if(document.body.scrollWidth<600){
+                    $("#submitForm").css("width","100%");
+                }else {
+                    $("#submitForm").css("width","400px");
+                }
+
+                $("#login_btn").click(function () {
+                    $.post("../opServlet/login", $("#login_form").serialize(), function (data) {
+                        if (data.flag) {
+                            location.href = "../opServlet/querySalaryInfoByKey";
+                        } else {
+                            document.getElementById("CAPTCHA_img").src = "../CAPTCHA?" + new Date().getTime();
+                            var err_msg_block = $("#err_msg_block");
+                            err_msg_block.css("display", "block");
+                            err_msg_block.html(data.errorMsg);
+                        }
+                    })
+                })
+
+
+                //解决Firefox下回车穿透
+                var name = "";
+                $("#CAPTCHA").keyup(function (event) {
+                    if (event.keyCode == 13) {
+                        if ($(this).val() == name) {
+                            $("#login_btn").click();
+                        }
+                    }
+                })
+                $("#CAPTCHA").keydown(function (event) {
+                    if (event.keyCode == 13) {
+                        name = $(this).val();
+                    }
+
+                });
+                // $("#CAPTCHA").get(0).addEventListener("keyup",function (e){
+                // 	e.preventDefault()
+                // 	if(e.keyCode===13){
+                // 		$("#login_btn").click();
+                // 	}
+                // })
+            })
+        </script>
+    </head>
+    <body>
+
+        <div class="container" id="submitForm" style="width:400px">
+            <h1 style="text-align: center;margin-top:50px;">工资管理系统</h1>
+            <h3 style="text-align: center;">管理员登录</h3>
+            <form action="" id="login_form" method="post" accept-charset="utf-8">
+                <div class="form-group">
+                    <label for="op_id">用户名：</label>
+                    <input type="text" name="op_id" class="form-control" id="op_id" placeholder="请输入用户名"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="op_password">密码：</label>
+                    <input type="password" name="op_password" class="form-control" id="op_password"
+                           placeholder="请输入密码"/>
+                </div>
+
+                <div class="form-group">
+                    <label for="CAPTCHA">验证码：</label>
+                    <div class="container-fluid" style="padding: 0px">
+                        <div class="row">
+                            <div class="col-xs-6 col-sm-5" style="margin-top: 10px">
+                                <input type="text" name="CAPTCHA" class="form-control" id="CAPTCHA"
+                                       placeholder="不区分大小写"/>
+                            </div>
+                            <!--					  <div class="hidden-xs" style="margin-top: 10px"></div>-->
+                            <div class="col-xs-6 col-sm-6" style="margin-top: 10px">
+					  	<span><img alt="验证码加载失败" src="../CAPTCHA" onclick="changeCAPTCHA(this)" id="CAPTCHA_img"/>
+						<span style="color: gray">点击验证码刷新</span></span>
+                            </div>
+                            <script type="text/javascript">
+                                function changeCAPTCHA(ele) {
+                                    ele.src = "../CAPTCHA?" + new Date().getTime();
+                                }
+                            </script>
+                        </div>
+                    </div>
+                </div>
+                <hr/>
+
+                <!-- 出错显示的信息框 -->
+                <div class="alert alert-info alert-dismissible" role="alert" id="err_msg_block" style="display: none;">
+                    <button type="button" class="close" data-dismiss="alert" id="err_msg_block_x">
+                        <span id="err_msg_block_x_y">&times;</span>
+                    </button>
+                    <strong>状态提示</strong>
+                </div>
+
+                <div class="form-group" style="text-align: center;">
+                    <input class="btn btn btn-primary" type="button" value="登录" id="login_btn">
+                </div>
+            </form>
+
+
+            <!--管理员登陆跳转链接-->
+            <a href="../user/login.html" style="margin-top:80px;display:block;text-align: center;">普通用户登陆</a>
+            <!--更多信息-->
+            <a href="#" style="margin-top:10px;display:block;text-align: center;"
+               data-toggle="modal" data-target="#myModal">更多信息</a>
+
+            <!--更多信息模态框-->
+            <style>
+                @media screen and (max-width: 1000px) {
+                    　　#myModalDialog {
+                        width: 200px;
+                    }
+                }
+
+                @media screen and (min-width: 1001px) {
+                    　　#myModalDialog {
+                        width: 600px;
+                    }
+                }
+            </style>
+            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                 aria-hidden="true">
+                <div class="modal-dialog" id="myModalDialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title" id="myModalLabel" style="text-align: center">更多信息</h4>
+                        </div>
+                        <div class="modal-body" id="windowContent">
+                            <p style="line-height: 30px;font-size: 16px">
+                                · 该页面为管理员登陆界面，若您为用户，请点击普通用户登陆链接。<br>
+                                · 管理员需要输入用户名与密码，以及正确的验证码以登录系统。<br>
+                                · 若管理员忘记了管理员账号密码，请联系系统开发者：ibilllee@qq.com。 <br>
+                                · 请在退出系统时点击右上角用户中心，退出登录。 <br>
+                                · 浏览器提示不安全的页面属正常现象，因本网站非https连接而是http连接，不影响系统使用。
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--与页底距离-->
+        <div style="margin-bottom: 35px"></div>
+    </body>
+</html>
